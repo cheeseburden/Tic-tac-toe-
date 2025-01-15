@@ -1,0 +1,143 @@
+import pygame
+import sys
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+WIDTH, HEIGHT = 600, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Tic Tac Toe")
+
+# Colors
+WHITE = (240, 240, 240)
+BLACK = (30, 30, 30)
+RED = (231, 76, 60)
+BLUE = (41, 128, 185)
+GRAY = (149, 165, 166)
+GRID_COLOR = (52, 73, 94)
+
+# Grid settings
+GRID_SIZE = 3
+CELL_SIZE = WIDTH // GRID_SIZE
+LINE_WIDTH = 5
+
+# Initialize board
+board = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+
+# Game variables
+current_player = "X"  # "X" or "O"
+winner = None
+show_play_again = False
+
+# Fonts
+font = pygame.font.Font(None, 120)
+winner_font = pygame.font.Font(None, 80)
+button_font = pygame.font.Font(None, 50)
+
+# Draw the grid
+def draw_grid():
+    for x in range(1, GRID_SIZE):
+        pygame.draw.line(screen, GRID_COLOR, (x * CELL_SIZE, 0), (x * CELL_SIZE, HEIGHT), LINE_WIDTH)
+        pygame.draw.line(screen, GRID_COLOR, (0, x * CELL_SIZE), (WIDTH, x * CELL_SIZE), LINE_WIDTH)
+
+# Draw X and O on the board
+def draw_marks():
+    for row in range(GRID_SIZE):
+        for col in range(GRID_SIZE):
+            if board[row][col] == "X":
+                text = font.render("X", True, RED)
+                text_rect = text.get_rect(center=(col * CELL_SIZE + CELL_SIZE // 2, row * CELL_SIZE + CELL_SIZE // 2))
+                screen.blit(text, text_rect)
+            elif board[row][col] == "O":
+                text = font.render("O", True, BLUE)
+                text_rect = text.get_rect(center=(col * CELL_SIZE + CELL_SIZE // 2, row * CELL_SIZE + CELL_SIZE // 2))
+                screen.blit(text, text_rect)
+
+# Check for a winner
+def check_winner():
+    # Check rows and columns
+    for i in range(GRID_SIZE):
+        if board[i][0] == board[i][1] == board[i][2] and board[i][0] is not None:
+            return board[i][0]
+        if board[0][i] == board[1][i] == board[2][i] and board[0][i] is not None:
+            return board[0][i]
+
+    # Check diagonals
+    if board[0][0] == board[1][1] == board[2][2] and board[0][0] is not None:
+        return board[0][0]
+    if board[0][2] == board[1][1] == board[2][0] and board[0][2] is not None:
+        return board[0][2]
+
+    # Check for a tie
+    for row in board:
+        if None in row:
+            return None
+
+    return "Tie"
+
+# Draw the "Play Again" button
+def draw_play_again_button():
+    button_rect = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 + 150, 200, 50)
+    pygame.draw.rect(screen, GRAY, button_rect)
+    pygame.draw.rect(screen, BLACK, button_rect, 2)
+    text = button_font.render("Play Again", True, BLACK)
+    text_rect = text.get_rect(center=button_rect.center)
+    screen.blit(text, text_rect)
+    return button_rect
+
+# Display the win screen
+def display_win_screen(winner):
+    screen.fill(WHITE)
+    if winner == "Tie":
+        text = winner_font.render("It's a Draw!", True, BLACK)
+    else:
+        text = winner_font.render(f"{winner} Wins!", True, RED if winner == "X" else BLUE)
+    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 50))
+    screen.blit(text, text_rect)
+
+# Reset the game
+def reset_game():
+    global board, current_player, winner, show_play_again
+    board = [[None for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
+    current_player = "X"
+    winner = None
+    show_play_again = False
+
+# Main game loop
+running = True
+while running:
+    screen.fill(WHITE)
+    draw_grid()
+    draw_marks()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if winner is None:
+                x, y = event.pos
+                col = x // CELL_SIZE
+                row = y // CELL_SIZE
+
+                if board[row][col] is None:
+                    board[row][col] = current_player
+                    current_player = "O" if current_player == "X" else "X"
+
+            elif show_play_again:
+                if play_again_button.collidepoint(event.pos):
+                    reset_game()
+
+    winner = check_winner()
+    if winner:
+        display_win_screen(winner)
+        show_play_again = True
+
+    if show_play_again:
+        play_again_button = draw_play_again_button()
+
+    pygame.display.flip()
+
+pygame.quit()
+sys.exit()
